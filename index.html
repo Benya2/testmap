@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Map Editor</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.imageSmoothingEnabled = false;
+        
+        const img = new Image();
+        img.src = "pixelworld.png";
+        let offsetX = 0, offsetY = 0;
+        let scale = 1;
+        
+        img.onload = () => {
+            draw();
+        };
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
+        }
+        
+        document.addEventListener("keydown", (e) => {
+            const step = 10;
+            if (e.key === "ArrowUp") offsetY += step;
+            if (e.key === "ArrowDown") offsetY -= step;
+            if (e.key === "ArrowLeft") offsetX += step;
+            if (e.key === "ArrowRight") offsetX -= step;
+            draw();
+        });
+        
+        canvas.addEventListener("click", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left - offsetX) / scale;
+            const y = (e.clientY - rect.top - offsetY) / scale;
+            ctx.fillStyle = "red";
+            ctx.fillRect(Math.floor(x), Math.floor(y), 5, 5);
+        });
+        
+        canvas.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            const zoomFactor = 1.1;
+            const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+            const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+            const worldX = (mouseX - offsetX) / scale;
+            const worldY = (mouseY - offsetY) / scale;
+            
+            if (e.deltaY < 0) {
+                scale *= zoomFactor;
+            } else {
+                scale /= zoomFactor;
+            }
+            
+            offsetX = mouseX - worldX * scale;
+            offsetY = mouseY - worldY * scale;
+            draw();
+        }, { passive: false });
+    </script>
+</body>
+</html>
