@@ -17,9 +17,6 @@
             top: 50%;
             transform: translate(-50%, -50%);
             image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: -webkit-optimize-contrast;
         }
     </style>
 </head>
@@ -36,16 +33,23 @@
         img.src = "pixelworld.png";
         let offsetX = 0, offsetY = 0;
         let scale = 1;
-        
+        const pixels = []; // Хранение поставленных пикселей
+
         img.onload = () => {
             draw();
         };
-        
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
+            
+            // Перерисовка пикселей
+            pixels.forEach(({ x, y, color }) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, 5, 5);
+            });
         }
-        
+
         document.addEventListener("keydown", (e) => {
             const step = 10;
             if (e.key === "ArrowUp") offsetY += step;
@@ -54,15 +58,15 @@
             if (e.key === "ArrowRight") offsetX -= step;
             draw();
         });
-        
+
         canvas.addEventListener("click", (e) => {
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left - offsetX) / scale;
-            const y = (e.clientY - rect.top - offsetY) / scale;
-            ctx.fillStyle = "red";
-            ctx.fillRect(Math.floor(x), Math.floor(y), 5, 5);
+            const x = Math.floor(e.clientX - rect.left);
+            const y = Math.floor(e.clientY - rect.top);
+            pixels.push({ x, y, color: "red" });
+            draw();
         });
-        
+
         canvas.addEventListener("wheel", (e) => {
             e.preventDefault();
             const zoomFactor = 1.1;
@@ -76,11 +80,12 @@
             } else {
                 scale /= zoomFactor;
             }
-            
+
             offsetX = mouseX - worldX * scale;
             offsetY = mouseY - worldY * scale;
             draw();
         }, { passive: false });
+
     </script>
 </body>
 </html>
